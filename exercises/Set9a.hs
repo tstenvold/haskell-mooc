@@ -7,11 +7,12 @@
 -- You can also play around with your answers in GHCi with
 --
 --   stack ghci Set9a.hs
-
 module Set9a where
 
 import Data.Char
+import Data.Either
 import Data.List
+import Data.Maybe
 import Data.Ord
 
 import Mooc.Todo
@@ -24,9 +25,11 @@ import Mooc.Todo
 -- If the total number of hours needed for all exercises is over 100,
 -- return "Holy moly!" if it is under 10, return "Piece of cake!".
 -- Otherwise return "Ok."
-
 workload :: Int -> Int -> String
-workload nExercises hoursPerExercise = todo
+workload nExercises hoursPerExercise
+  | nExercises * hoursPerExercise < 10 = "Piece of cake!"
+  | nExercises * hoursPerExercise > 100 = "Holy moly!"
+  | otherwise = "Ok."
 
 ------------------------------------------------------------------------------
 -- Ex 2: Implement the function echo that builds a string like this:
@@ -37,9 +40,10 @@ workload nExercises hoursPerExercise = todo
 --   echo "" ==> ""
 --
 -- Hint: use recursion
-
 echo :: String -> String
-echo = todo
+echo [] = []
+echo [x] = [x] ++ ", "
+echo (x:xs) = (x : xs) ++ ", " ++ echo xs
 
 ------------------------------------------------------------------------------
 -- Ex 3: A country issues some banknotes. The banknotes have a serial
@@ -50,9 +54,19 @@ echo = todo
 --
 -- Given a list of bank note serial numbers (strings), count how many
 -- are valid.
-
 countValid :: [String] -> Int
-countValid = todo
+countValid [] = 0
+countValid (x:xs) = validate x + countValid xs
+
+validate n =
+  if third == fifth || fourth == sixth
+    then 1
+    else 0
+  where
+    third = n !! 2
+    fourth = n !! 3
+    fifth = n !! 4
+    sixth = n !! 5
 
 ------------------------------------------------------------------------------
 -- Ex 4: Find the first element that repeats two or more times _in a
@@ -62,9 +76,13 @@ countValid = todo
 --   repeated [1,2,3] ==> Nothing
 --   repeated [1,2,2,3,3] ==> Just 2
 --   repeated [1,2,1,2,3,3] ==> Just 3
-
 repeated :: Eq a => [a] -> Maybe a
-repeated = todo
+repeated [] = Nothing
+repeated [x] = Nothing
+repeated (x:xs) =
+  if x == head xs
+    then Just x
+    else repeated xs
 
 ------------------------------------------------------------------------------
 -- Ex 5: A laboratory has been collecting measurements. Some of the
@@ -84,9 +102,12 @@ repeated = todo
 --     ==> Left "no data"
 --   sumSuccess []
 --     ==> Left "no data"
-
 sumSuccess :: [Either String Int] -> Either String Int
-sumSuccess = todo
+sumSuccess xs
+  | n == [] = Left "no data"
+  | otherwise = Right (sum n)
+  where
+    n = (rights xs)
 
 ------------------------------------------------------------------------------
 -- Ex 6: A combination lock can either be open or closed. The lock
@@ -107,31 +128,45 @@ sumSuccess = todo
 --   isOpen (open "0000" (changeCode "0000" aLock)) ==> False
 --   isOpen (open "0000" (lock (changeCode "0000" (open "1234" aLock)))) ==> True
 --   isOpen (open "1234" (lock (changeCode "0000" (open "1234" aLock)))) ==> False
-
-data Lock = LockUndefined
-  deriving Show
+data Lock =
+  Lock Bool String
+  deriving (Show)
 
 -- aLock should be a locked lock with the code "1234"
+-- False == Closed
 aLock :: Lock
-aLock = todo
+aLock = Lock False "1234"
 
 -- isOpen returns True if the lock is open
 isOpen :: Lock -> Bool
-isOpen = todo
+isOpen (Lock closed _) = closed
 
 -- open tries to open the lock with the given code. If the code is
 -- wrong, nothing happens.
 open :: String -> Lock -> Lock
-open = todo
+open attempt (Lock closed code)
+  | closed == True = Lock True code
+  | attempt == code = Lock True code
+  | otherwise = Lock False code
 
 -- lock closes a lock. If the lock is already closed, nothing happens.
 lock :: Lock -> Lock
-lock = todo
+lock (Lock closed code) =
+  if isOpen l
+    then Lock False code
+    else l
+  where
+    l = (Lock closed code)
 
 -- changeCode changes the code of an open lock. If the lock is closed,
 -- nothing happens.
 changeCode :: String -> Lock -> Lock
-changeCode = todo
+changeCode newCode (Lock closed code) =
+  if isOpen l
+    then Lock closed newCode
+    else l
+  where
+    l = (Lock closed code)
 
 ------------------------------------------------------------------------------
 -- Ex 7: Here's a type Text that just wraps a String. Implement an Eq
@@ -145,10 +180,18 @@ changeCode = todo
 --   Text "a bc" == Text "ab  c\n"  ==> True
 --   Text "abc"  == Text "abcd"     ==> False
 --   Text "a bc" == Text "ab  d\n"  ==> False
+data Text =
+  Text String
+  deriving (Show)
 
-data Text = Text String
-  deriving Show
+instance Eq Text where
+  Text t1 == Text t2 = stripEmpty t1 == stripEmpty t2
 
+stripEmpty :: String -> String
+stripEmpty [] = []
+stripEmpty (x:xs)
+  | isSpace x = stripEmpty xs
+  | otherwise = x : stripEmpty xs
 
 ------------------------------------------------------------------------------
 -- Ex 8: We can represent functions or mappings as lists of pairs.
@@ -180,9 +223,18 @@ data Text = Text String
 --   a more complex example: note how "omicron" and "c" are ignored
 --     compose [("a","alpha"),("b","beta"),("c","gamma")] [("alpha",1),("beta",2),("omicron",15)]
 --       ==> [("a",1),("b",2)]
+compose :: (Eq a, Eq b, Eq c) => [(a, b)] -> [(b, c)] -> [(a, c)]
+compose as cs = map (lookups cs) fs
+  where
+    fs = filter (compares cs) as
 
-compose :: (Eq a, Eq b) => [(a,b)] -> [(b,c)] -> [(a,c)]
-compose = todo
+lookups :: (Eq b, Eq c) => [(b, c)] -> (a, b) -> (a, c)
+lookups ls (ft, key) = (ft, fromJust (lookup key ls))
+
+compares :: (Eq b, Eq c) => [(b, c)] -> (a, b) -> Bool
+compares xs (ft, sd)
+  | lookup sd xs == Nothing = False
+  | otherwise = True
 
 ------------------------------------------------------------------------------
 -- Ex 9: Reorder a list using an [(Int,Int)] mapping.
@@ -216,8 +268,11 @@ compose = todo
 --     ==> [5,9,3]
 --   permute ([(0,1),(1,0),(2,2)] `compose` [(0,0),(1,2),(2,1)]) [9,3,5]
 --     ==> [3,5,9]
+type Permutation = [(Int, Int)]
 
-type Permutation = [(Int,Int)]
-
-permute :: Permutation -> [a] -> [a]
-permute = todo
+permute :: (Eq a) => Permutation -> [a] -> [a]
+permute perm ls = map snd $ sortOn fst newIndices
+  where
+    permutor (ix, x) = (fromJust $ lookup ix perm, x)
+    zipped = zip [0 ..] ls
+    newIndices = map permutor zipped

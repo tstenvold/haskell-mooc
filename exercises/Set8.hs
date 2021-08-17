@@ -9,28 +9,28 @@ import Mooc.Todo
 -- library together. This file is made up of explanations (like this)
 -- and some prepared code. Some definitions you'll have to fill in
 -- yourself, just like in the previous exercise sets.
-
 -- We'll use the JuicyPixels library to generate images. The library
 -- exposes the Codec.Picture module that has everything we need.
 import Codec.Picture
 
 -- Let's start by defining Colors and Pictures.
-
 -- A Color is just three numbers: the red, green and blue components.
 -- We use Ints for convenience even though the valid range is only
 -- 0-255.
-data Color = Color Int Int Int
-  deriving (Show,Eq)
+data Color =
+  Color Int Int Int
+  deriving (Show, Eq)
 
 getRed :: Color -> Int
 getRed (Color r _ _) = r
+
 getGreen :: Color -> Int
 getGreen (Color _ g _) = g
+
 getBlue :: Color -> Int
 getBlue (Color _ _ b) = b
 
 -- Here are some colors
-
 black :: Color
 black = Color 0 0 0
 
@@ -49,18 +49,19 @@ yellow = Color 255 240 0
 -- A coordinate is two Ints, x and y. In this project, the (0,0)
 -- coordinate is in the top left corner of the image. The x coordinate
 -- increases to the right, and the y coordinate increases down.
-
-data Coord = Coord Int Int
+data Coord =
+  Coord Int Int
 
 -- A Picture is a wrapper for a function of type Coord -> Color.
 -- The function takes in x and y coordinates and returns a color.
-
-data Picture = Picture (Coord -> Color)
+data Picture =
+  Picture (Coord -> Color)
 
 -- Here's a picture that's just a white dot at 10,10
 justADot = Picture f
-  where f (Coord 10 10) = white
-        f _             = black
+  where
+    f (Coord 10 10) = white
+    f _ = black
 
 -- Here's a picture that's just a solid color
 solid :: Color -> Picture
@@ -68,10 +69,11 @@ solid color = Picture (\coord -> color)
 
 -- Here's a simple picture:
 examplePicture1 = Picture f
-  where f (Coord x y) | abs (x+y) < 100 = pink    -- top corner is pink
-                      | max x y < 200 = white     -- surrounded by a white square
-                      | otherwise = black         -- rest of the picture is black
-
+  where
+    f (Coord x y)
+      | abs (x + y) < 100 = pink -- top corner is pink
+      | max x y < 200 = white -- surrounded by a white square
+      | otherwise = black -- rest of the picture is black
 
 -- In order to find out what our example picture looks like, here's a
 -- function that renders a Picture into a png file.
@@ -80,11 +82,13 @@ examplePicture1 = Picture f
 --
 -- The return type is IO (). Check Lecture 8 for a short introduction
 -- to IO
-
 render :: Picture -> Int -> Int -> String -> IO ()
-render (Picture f) w h name = writePng name (generateImage (\x y -> colorToPixel (f (Coord x y))) w h)
-  where colorToPixel :: Color -> PixelRGB8
-        colorToPixel (Color r g b) = PixelRGB8 (fromIntegral r) (fromIntegral g) (fromIntegral b)
+render (Picture f) w h name =
+  writePng name (generateImage (\x y -> colorToPixel (f (Coord x y))) w h)
+  where
+    colorToPixel :: Color -> PixelRGB8
+    colorToPixel (Color r g b) =
+      PixelRGB8 (fromIntegral r) (fromIntegral g) (fromIntegral b)
 
 -- To see examplePicture1, run this in GHCi:
 --
@@ -93,30 +97,34 @@ render (Picture f) w h name = writePng name (generateImage (\x y -> colorToPixel
 -- This should produce an example1.png file.
 --
 -- Remember: You can get open GHCi with `stack ghci Set8.hs`
-
 -- For testing purposes, let's also define some functions for drawing
 -- pictures as lists. It's customary to show colours as hexadecimal
 -- strings. This is what colorToHex does.
-
 showHex :: Int -> String
 showHex i = [digit (div i 16), digit (mod i 16)]
-  where digit x | x>=0 && x<16 = intToDigit x
-                | otherwise    = 'X'
+  where
+    digit x
+      | x >= 0 && x < 16 = intToDigit x
+      | otherwise = 'X'
 
 colorToHex :: Color -> String
 colorToHex (Color r g b) = showHex r ++ showHex g ++ showHex b
 
 getPixel :: Picture -> Int -> Int -> String
 getPixel (Picture f) x y = colorToHex (f (Coord x y))
-renderList :: Picture -> (Int,Int) -> (Int,Int) -> [[String]]
-renderList picture (minx,maxx) (miny,maxy) =
-  [[getPixel picture x y | x <- [minx..maxx]] | y <- [miny..maxy]]
+
+getColor :: Picture -> Int -> Int -> Color
+getColor (Picture f) x y = f (Coord x y)
+
+renderList :: Picture -> (Int, Int) -> (Int, Int) -> [[String]]
+renderList picture (minx, maxx) (miny, maxy) =
+  [[getPixel picture x y | x <- [minx .. maxx]] | y <- [miny .. maxy]]
 
 -- renderListExample evaluates to
 -- [["000000","000000","000000"],
 --  ["000000","ffffff","000000"],
 --  ["000000","000000","000000"]]
-renderListExample = renderList justADot (9,11) (9,11)
+renderListExample = renderList justADot (9, 11) (9, 11)
 
 ------------------------------------------------------------------------------
 -- Ex 1: define a picture dotAndLine that has a white dot at (3,4) and
@@ -131,11 +139,14 @@ renderListExample = renderList justADot (9,11) (9,11)
 --      ["000000","000000","000000"],
 --      ["ff69b4","ff69b4","ff69b4"],
 --      ["000000","000000","000000"]]
-
 dotAndLine :: Picture
-dotAndLine = todo
-------------------------------------------------------------------------------
+dotAndLine = Picture f
+  where
+    f (Coord 3 4) = white
+    f (Coord _ 8) = pink
+    f _ = black
 
+------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- Ex 2: blending colors and images.
 --
@@ -164,15 +175,18 @@ dotAndLine = todo
 --     ==> [["7f0000","7f0000","7f0000"],
 --          ["7f0000","ff7f7f","7f0000"],
 --          ["7f0000","7f0000","7f0000"]]
-
 blendColor :: Color -> Color -> Color
-blendColor = todo
+blendColor (Color r1 b1 g1) (Color r2 b2 g2) =
+  Color (div (r1 + r2) 2) (div (b1 + b2) 2) (div (g1 + g2) 2)
+
+overlay :: Color -> Color -> Color
+overlay (Color 0 0 0) (Color r2 b2 g2) = Color r2 b2 g2
+overlay (Color r1 b1 g1) (Color r2 b2 g2) = Color r1 b1 g1
 
 combine :: (Color -> Color -> Color) -> Picture -> Picture -> Picture
-combine = todo
+combine f (Picture p1) (Picture p2) = Picture (\x -> f (p1 x) (p2 x))
 
 ------------------------------------------------------------------------------
-
 -- Let's define blend, we'll use it later
 blend :: Picture -> Picture -> Picture
 blend = combine blendColor
@@ -181,8 +195,8 @@ blend = combine blendColor
 -- notion of a Shape. A Shape is just a function that takes in
 -- coordinates and returns a boolean indicating whether the
 -- coordinates belong to the shape.
-
-data Shape = Shape (Coord -> Bool)
+data Shape =
+  Shape (Coord -> Bool)
 
 -- Here's a utility for testing
 contains :: Shape -> Int -> Int -> Bool
@@ -190,28 +204,28 @@ contains (Shape f) x y = f (Coord x y)
 
 -- The simplest shape is a dot. Here's a function that returns a dot
 -- in a given position.
-
 dot :: Int -> Int -> Shape
 dot x y = Shape f
-  where f (Coord cx cy) = (x==cx) && (y==cy)
+  where
+    f (Coord cx cy) = (x == cx) && (y == cy)
 
 -- Here's the definitions of a circle
-
 circle :: Int -> Int -> Int -> Shape
 circle r cx cy = Shape f
-  where f (Coord x y) = (x-cx)^2 + (y-cy)^2 < r^2
+  where
+    f (Coord x y) = (x - cx) ^ 2 + (y - cy) ^ 2 < r ^ 2
 
 -- To be able to draw a Shape we need to convert it to a Picture.
 -- Here's one way: fill the shape with a given color.
-
 fill :: Color -> Shape -> Picture
 fill c (Shape f) = Picture g
-  where g coord | f coord = c
-                | otherwise = black
+  where
+    g coord
+      | f coord = c
+      | otherwise = black
 
--- Here's a picture of a red circle. You can see it by running
+-- Here's a picture of a red circle. You can see/ it by running
 --   render exampleCircle 400 300 "circle.png"
-
 exampleCircle :: Picture
 exampleCircle = fill red (circle 80 100 200)
 
@@ -228,11 +242,12 @@ exampleCircle = fill red (circle 80 100 200)
 --        ["000000","ffffff","ffffff","000000","000000","000000"],
 --        ["000000","ffffff","ffffff","000000","000000","000000"],
 --        ["000000","000000","000000","000000","000000","000000"]]
-
 rectangle :: Int -> Int -> Int -> Int -> Shape
-rectangle x0 y0 w h = todo
-------------------------------------------------------------------------------
+rectangle x0 y0 w h = Shape f
+  where
+    f (Coord x y) = x >= x0 && x < (x0 + w) && y >= y0 && y < (y0 + h)
 
+------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- Ex 4: combining shapes.
 --
@@ -244,24 +259,23 @@ rectangle x0 y0 w h = todo
 --
 -- Cut should remove all points of the second shape from the first
 -- shape.
-
 union :: Shape -> Shape -> Shape
-union = todo
+union (Shape s1) (Shape s2) = Shape (\x -> s1 x || s2 x)
 
 cut :: Shape -> Shape -> Shape
-cut = todo
-------------------------------------------------------------------------------
+cut (Shape s1) (Shape s2) = Shape (\x -> s1 x && (not $ s2 x))
 
+------------------------------------------------------------------------------
 -- Here's a snowman, built using union from circles and rectangles.
 -- See it by running
 --   render exampleSnowman 400 300 "snowman.png"
-
 exampleSnowman :: Picture
 exampleSnowman = fill white snowman
-  where snowman = union (cut body mouth) hat
-        mouth = rectangle 180 180 40 5
-        body = union (circle 50 200 250) (circle 40 200 170)
-        hat = union (rectangle 170 130 60 5) (rectangle 180 100 40 30)
+  where
+    snowman = union (cut body mouth) hat
+    mouth = rectangle 180 180 40 5
+    body = union (circle 50 200 250) (circle 40 200 170)
+    hat = union (rectangle 170 130 60 5) (rectangle 180 100 40 30)
 
 ------------------------------------------------------------------------------
 -- Ex 5: even though we can combine Shapes and convert them to Pictures, we
@@ -275,40 +289,42 @@ exampleSnowman = fill white snowman
 --        ["000000","ffffff","000000"],
 --        ["000000","ff69b4","000000"],
 --        ["000000","000000","000000"]]
-
 paintSolid :: Color -> Shape -> Picture -> Picture
-paintSolid color shape base = todo
-------------------------------------------------------------------------------
+paintSolid color shape base = combine overlay (fill color shape) base
 
+------------------------------------------------------------------------------
 allWhite :: Picture
 allWhite = solid white
 
 -- Here's a colorful version of the snowman example. See it by running:
 --   render exampleColorful 400 300 "colorful.png"
-
 exampleColorful :: Picture
-exampleColorful = (paintSolid black hat . paintSolid red legs . paintSolid pink body) allWhite
-  where legs = circle 50 200 250
-        body = circle 40 200 170
-        hat = union (rectangle 170 130 60 5) (rectangle 180 100 40 30)
+exampleColorful =
+  (paintSolid black hat . paintSolid red legs . paintSolid pink body) allWhite
+  where
+    legs = circle 50 200 250
+    body = circle 40 200 170
+    hat = union (rectangle 170 130 60 5) (rectangle 180 100 40 30)
 
 -- How about painting with a pattern instead of a solid color? Here
 -- are the definitions of two patterns (Pictures).
-
 stipple :: Color -> Color -> Picture
 stipple a b = Picture f
-  where f (Coord x y) | even x == even y  = a
-                      | otherwise         = b
+  where
+    f (Coord x y)
+      | even x == even y = a
+      | otherwise = b
 
 stripes :: Color -> Color -> Picture
 stripes a b = Picture f
-  where f (Coord x y) | even y    = a
-                      | otherwise = b
+  where
+    f (Coord x y)
+      | even y = a
+      | otherwise = b
 
 -- You can check them out:
 --   render (stipple red white) 50 50 "stipple.png"
 --   render (stripes pink black) 50 50 "stripes.png"
-
 ------------------------------------------------------------------------------
 -- Ex 6: implement a function paint that works like paintSolid, except
 -- the first argument is a pattern (as a Picture).
@@ -320,23 +336,28 @@ stripes a b = Picture f
 --       ["ff0000","ff0000","000000","000000","000000"],
 --       ["ffffff","ffffff","000000","000000","000000"],
 --       ["000000","000000","000000","000000","000000"]]
-
 paint :: Picture -> Shape -> Picture -> Picture
-paint pat shape base = todo
-------------------------------------------------------------------------------
+paint (Picture pat) (Shape shape) (Picture base) = Picture f
+  where
+    f coord
+      | shape coord = pat coord
+      | otherwise = base coord
 
+------------------------------------------------------------------------------
 -- Here's a patterned version of the snowman example. See it by running:
 --   render examplePatterns 400 300 "patterns.png"
-
 examplePatterns :: Picture
-examplePatterns = (paint (solid black) hat . paint (stripes red yellow) legs . paint (stipple pink black) body) allWhite
-  where legs = circle 50 200 250
-        body = circle 40 200 170
-        hat = union (rectangle 170 130 60 5) (rectangle 180 100 40 30)
+examplePatterns =
+  (paint (solid black) hat .
+   paint (stripes red yellow) legs . paint (stipple pink black) body)
+    allWhite
+  where
+    legs = circle 50 200 250
+    body = circle 40 200 170
+    hat = union (rectangle 170 130 60 5) (rectangle 180 100 40 30)
 
 -- What if we want vertical stripes? What if we want wider stripes?
 -- Let's implement zooming and flipping images.
-
 flipCoordXY :: Coord -> Coord
 flipCoordXY (Coord x y) = (Coord y x)
 
@@ -357,14 +378,14 @@ largeVerticalStripes = zoom 5 (flipXY (stripes red yellow))
 
 -- To support all sorts of image transforms let's use a type class
 -- Transform. A Transform is something that you can apply to an image.
-
 class Transform t where
   apply :: t -> Picture -> Picture
 
 -- Here's a simple image for testing transformations
 xy :: Picture
 xy = Picture f
-  where f (Coord x y) = Color (mod x 256) (mod y 256) 0
+  where
+    f (Coord x y) = Color (mod x 256) (mod y 256) 0
 
 ------------------------------------------------------------------------------
 -- Ex 7: implement Transform instances for the Fill, Zoom and Flip types.
@@ -381,25 +402,31 @@ xy = Picture f
 --
 -- The FlipXY transform should switch the x and y coordinates, i.e.
 -- map (10,15) to (15,10).
-
-data Fill = Fill Color
+data Fill =
+  Fill Color
 
 instance Transform Fill where
-  apply = todo
+  apply (Fill col) _ = solid col
 
-data Zoom = Zoom Int
-  deriving Show
+data Zoom =
+  Zoom Int
+  deriving (Show)
 
 instance Transform Zoom where
-  apply = todo
+  apply (Zoom z) = zoom z
 
-data Flip = FlipX | FlipY | FlipXY
-  deriving Show
+data Flip
+  = FlipX
+  | FlipY
+  | FlipXY
+  deriving (Show)
 
 instance Transform Flip where
-  apply = todo
-------------------------------------------------------------------------------
+  apply FlipX (Picture p) = Picture (\(Coord x y) -> p (Coord (-x) y))
+  apply FlipY (Picture p) = Picture (\(Coord x y) -> p (Coord x (-y)))
+  apply FlipXY p = flipXY p
 
+------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- Ex 8: the Chain type represents a combination of two transforms.
 -- Implement a Transform instance for Chain.
@@ -408,14 +435,14 @@ instance Transform Flip where
 -- the image, and then t1.
 --
 -- Hint: you might need a constraint on the instance
+data Chain a b =
+  Chain a b
+  deriving (Show)
 
-data Chain a b = Chain a b
-  deriving Show
+instance (Transform a, Transform b) => Transform (Chain a b) where
+  apply (Chain a b) = apply a . apply b
 
-instance Transform (Chain a b) where
-  apply = todo
 ------------------------------------------------------------------------------
-
 -- Now we can redefine largeVerticalStripes using the above Transforms.
 -- See the picture by running
 --   render largeVerticalStripes2 400 300 "large-stripes2.png"
@@ -446,14 +473,27 @@ checkered = flipBlend largeVerticalStripes2
 --        ["000000","333333","333333","333333","000000"],
 --        ["000000","000000","333333","000000","000000"],
 --        ["000000","000000","000000","000000","000000"]]
-
-data Blur = Blur
-  deriving Show
+data Blur =
+  Blur
+  deriving (Show)
 
 instance Transform Blur where
-  apply = todo
-------------------------------------------------------------------------------
+  apply Blur p = Picture f
+    where
+      f (Coord x y) =
+        getAverage
+          [ getColor p x y
+          , getColor p (x - 1) y
+          , getColor p (x + 1) y
+          , getColor p x (y - 1)
+          , getColor p x (y + 1)
+          ]
+      getAverage cs = Color (avg cs "r") (avg cs "g") (avg cs "b")
+      avg cs "r" = div (sum $ map getRed cs) (length cs)
+      avg cs "g" = div (sum $ map getGreen cs) (length cs)
+      avg cs "b" = div (sum $ map getBlue cs) (length cs)
 
+------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- Ex 10: blur an image multiple times. Implement a Transform instance
 -- for BlurMany. The transform BlurMany n should perform Blur n times.
@@ -464,16 +504,15 @@ instance Transform Blur where
 --        ["0a0a0a","141414","333333","141414","0a0a0a"],
 --        ["000000","141414","141414","141414","000000"],
 --        ["000000","000000","0a0a0a","000000","000000"]]
-
-data BlurMany = BlurMany Int
-  deriving Show
+data BlurMany =
+  BlurMany Int
+  deriving (Show)
 
 instance Transform BlurMany where
-  apply = todo
-------------------------------------------------------------------------------
+  apply (BlurMany 0) p = p
+  apply (BlurMany n) p = apply (BlurMany (n - 1)) $ apply Blur p
 
+------------------------------------------------------------------------------
 -- Here's a blurred version of our original snowman. See it by running
 --   render blurredSnowman 400 300 "blurred.png"
-
 blurredSnowman = apply (BlurMany 2) exampleSnowman
-

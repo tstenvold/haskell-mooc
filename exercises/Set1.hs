@@ -12,7 +12,6 @@
 --   * basic expressions
 --   * pattern matching
 --   * recursion
-
 module Set1 where
 
 import Mooc.Todo
@@ -20,22 +19,24 @@ import Mooc.Todo
 ------------------------------------------------------------------------------
 -- Ex 1: define variables one and two. They should have type Int and
 -- values 1 and 2, respectively.
+one :: Int
+one = 1
 
+two :: Int
+two = 2
 
 ------------------------------------------------------------------------------
 -- Ex 2: define the function double of type Integer->Integer. Double
 -- should take one argument and return it multiplied by two.
-
 double :: Integer -> Integer
-double x = todo
+double x = x * 2
 
 ------------------------------------------------------------------------------
 -- Ex 3: define the function quadruple that uses the function double
 -- from the previous exercise to return its argument multiplied by
 -- four.
-
 quadruple :: Integer -> Integer
-quadruple x = todo
+quadruple x = (double x) + (double x)
 
 ------------------------------------------------------------------------------
 -- Ex 4: define the function distance. It should take four arguments of
@@ -50,27 +51,32 @@ quadruple x = todo
 -- Examples:
 --   distance 0 0 1 1  ==>  1.4142135...
 --   distance 1 1 4 5  ==>  5.0
-
-distance = todo
+distance :: Double -> Double -> Double -> Double -> Double
+distance x1 y1 x2 y2 = sqrt (x + y)
+  where
+    x = (x1 - x2) ^ 2
+    y = (y1 - y2) ^ 2
 
 ------------------------------------------------------------------------------
 -- Ex 5: define the function eeny that returns "eeny" for even inputs
 -- and "meeny" for odd inputs.
 --
 -- Ps. have a look at the built in function "even"
-
 eeny :: Integer -> String
-eeny = todo
+eeny n =
+  if even n
+    then "eeny"
+    else "meeny"
 
 ------------------------------------------------------------------------------
 -- Ex 6: here's the function checkPassword from the course material.
 -- Modify it so that it accepts two passwords, "swordfish" and
 -- "mellon".
-
 checkPassword :: String -> String
-checkPassword password = if password == "swordfish"
-                         then "You're in."
-                         else "ACCESS DENIED!"
+checkPassword password =
+  if password == "swordfish" || password == "mellon"
+    then "You're in."
+    else "ACCESS DENIED!"
 
 ------------------------------------------------------------------------------
 -- Ex 7: A postal service prices packages the following way.
@@ -80,9 +86,11 @@ checkPassword password = if password == "swordfish"
 --
 -- Write a function postagePrice that takes the weight of a package
 -- in grams, and returns the cost in credits.
-
 postagePrice :: Int -> Int
-postagePrice = todo
+postagePrice grams
+  | grams <= 500 = 250
+  | grams > 500 && grams <= 5000 = 300 + grams
+  | grams > 5000 = 6000
 
 ------------------------------------------------------------------------------
 -- Ex 8: define a function isZero that returns True if it is given an
@@ -91,23 +99,26 @@ postagePrice = todo
 -- Use pattern matching! Don't use comparisons!
 --
 -- Ps. remember, the type of booleans in haskell is Bool
-
-isZero = todo
+isZero :: Integer -> Bool
+isZero n =
+  if n == 0
+    then True
+    else False
 
 ------------------------------------------------------------------------------
 -- Ex 9: implement using recursion a function sumTo such that
 --   sumTo n
 -- computes the sum 1+2+...+n
-
 sumTo :: Integer -> Integer
-sumTo = todo
+sumTo n = sum [1 .. n]
 
 ------------------------------------------------------------------------------
 -- Ex 10: power n k should compute n to the power k (i.e. n^k)
 -- Use recursion.
-
 power :: Integer -> Integer -> Integer
-power = todo
+power n k
+  | k == 0 = 1
+  | otherwise = n * power n (k - 1)
 
 ------------------------------------------------------------------------------
 -- Ex 11: ilog3 n should be the number of times you can divide given
@@ -124,6 +135,11 @@ power = todo
 -- More examples:
 --   ilog3 2 ==> 1
 --   ilog3 7 ==> 2
-
 ilog3 :: Integer -> Integer
-ilog3 = todo
+ilog3 n
+  | n == 0 = n
+  | n < 3 = 1
+  | d > 0 = 1 + ilog3 d
+  | otherwise = 0
+  where
+    d = n `div` 3

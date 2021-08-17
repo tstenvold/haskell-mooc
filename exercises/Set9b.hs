@@ -1,8 +1,8 @@
 module Set9b where
 
-import Mooc.Todo
-
 import Data.List
+import Data.Maybe
+import Mooc.Todo
 
 --------------------------------------------------------------------------------
 -- Ex 1: In this exercise set, we'll solve the N Queens problem step by step.
@@ -41,16 +41,17 @@ import Data.List
 -- Before we start, remember type aliases? We define some of them just to make
 -- the roles of different function arguments clearer without adding syntactical
 -- overhead:
+type Row = Int
 
-type Row   = Int
-type Col   = Int
+type Col = Int
+
 type Coord = (Row, Col)
 
 nextRow :: Coord -> Coord
-nextRow (i,j) = todo
+nextRow (i, j) = (i + 1, 1)
 
 nextCol :: Coord -> Coord
-nextCol (i,j) = todo
+nextCol (i, j) = (i, j + 1)
 
 --------------------------------------------------------------------------------
 -- Ex 2: Implement the function prettyPrint that, given the size of
@@ -100,9 +101,20 @@ nextCol (i,j) = todo
 -- takes O(n^3) time. Just ignore the previous sentence, if you're not familiar
 -- with the O-notation.)
 prettyPrint :: Size -> [Coord] -> String
-prettyPrint = todo
+prettyPrint size cs = buildLines 1 size cs
 
---------------------------------------------------------------------------------
+buildLines :: Int -> Int -> [Coord] -> String
+buildLines row size cs
+  | row > size = ""
+  | otherwise = drawLine size (row, 1) cs ++ buildLines (row + 1) size cs
+
+drawLine :: Size -> Coord -> [Coord] -> String
+drawLine size pos cs
+  | size <= 0 = "\n"
+  | elem pos cs = "Q" ++ drawLine (size - 1) (nextCol pos) cs
+  | otherwise = "." ++ drawLine (size - 1) (nextCol pos) cs
+   --------------------------------------------------------------------------------
+
 -- Ex 3: The task in this exercise is to define the relations sameRow, sameCol,
 -- sameDiag, and sameAntidiag that check whether or not two coordinates of the
 -- form (i,j) :: (Row, Col) on a table of indeterminate size are on the same
@@ -122,18 +134,29 @@ prettyPrint = todo
 --   sameAntidiag (1,1) (1,2) ==> False
 --   sameAntidiag (2,10) (5,7) ==> True
 --   sameAntidiag (500,5) (5,500) ==> True
-
 sameRow :: Coord -> Coord -> Bool
-sameRow (i,j) (k,l) = todo
+sameRow (i, j) (k, l) = i == k
 
 sameCol :: Coord -> Coord -> Bool
-sameCol (i,j) (k,l) = todo
+sameCol (i, j) (k, l) = j == l
 
 sameDiag :: Coord -> Coord -> Bool
-sameDiag (i,j) (k,l) = todo
+sameDiag (i, j) (k, l) = (i, j) == (k, l) || maxi `elem` diag
+  where
+    maxi = max (i, j) (k, l)
+    (x, y) = min (i, j) (k, l)
+    diag = take (abs (k - i)) $ zip [x + 1 ..] [y + 1 ..]
 
 sameAntidiag :: Coord -> Coord -> Bool
-sameAntidiag (i,j) (k,l) = todo
+sameAntidiag (i, j) (k, l) = (i, j) == (k, l) || mini `elem` diag
+  where
+    (x, y) = max (i, j) (k, l)
+    mini = min (i, j) (k, l)
+    diag = take (abs (k - i)) $ zip [x - 1,x - 2 ..] [y + 1 ..]
+
+anySame :: Coord -> Coord -> Bool
+anySame c1 c2 =
+  sameRow c1 c2 || sameCol c1 c2 || sameDiag c1 c2 || sameAntidiag c1 c2
 
 --------------------------------------------------------------------------------
 -- Ex 4: In chess, a queen may capture another piece in the same row, column,
@@ -183,13 +206,17 @@ sameAntidiag (i,j) (k,l) = todo
 -- Lists of coordinates of queens will be later used in a First in Last Out
 -- (LIFO) manner, so we give this type the alias Stack:
 -- https://en.wikipedia.org/wiki/Stack_(abstract_data_type)
+type Size = Int
 
-type Size      = Int
 type Candidate = Coord
-type Stack     = [Coord]
+
+type Stack = [Coord]
 
 danger :: Candidate -> Stack -> Bool
-danger = todo
+danger _ [] = False
+danger can (c:cs)
+  | anySame can c = True
+  | otherwise = danger can cs
 
 --------------------------------------------------------------------------------
 -- Ex 5: In this exercise, the task is to write a modified version of
@@ -222,9 +249,22 @@ danger = todo
 --
 -- (For those that did the challenge in exercise 2, there's probably no O(n^2)
 -- solution to this version. Any working solution is okay in this exercise.)
-
 prettyPrint2 :: Size -> Stack -> String
-prettyPrint2 = todo
+prettyPrint2 size cs = buildLines2 1 size cs
+
+buildLines2 :: Int -> Int -> Stack -> String
+buildLines2 row size cs
+  | row > size = ""
+  | otherwise = drawLine2 size (row, 1) cs ++ buildLines2 (row + 1) size cs
+
+drawLine2 :: Size -> Coord -> Stack -> String
+drawLine2 size pos cs
+  | size <= 0 = "\n"
+  | elem pos cs = "Q" ++ next
+  | danger pos cs = "#" ++ next
+  | otherwise = "." ++ next
+  where
+    next = drawLine2 (size - 1) (nextCol pos) cs
 
 --------------------------------------------------------------------------------
 -- Ex 6: Now that we can check if a piece can be safely placed into a square in
@@ -263,9 +303,11 @@ prettyPrint2 = todo
 --     #Q######
 --     ####Q###
 --     Q#######
-
 fixFirst :: Size -> Stack -> Maybe Stack
-fixFirst n s = todo
+fixFirst size (c:cs)
+  | snd c > size = Nothing
+  | danger c cs = fixFirst size ((nextCol c) : cs)
+  | otherwise = Just (c : cs)
 
 --------------------------------------------------------------------------------
 -- Ex 7: We need two helper functions for stack management.
@@ -285,12 +327,11 @@ fixFirst n s = todo
 --   backtrack [(8,1),(7,5),(6,2),(4,6),(3,4)] ==> [(7,6),(6,2),(4,6),(3,4)]
 --
 -- Hint: Remember nextRow and nextCol? Use them!
-
 continue :: Stack -> Stack
-continue s = todo
+continue s = nextRow (head s) : s
 
 backtrack :: Stack -> Stack
-backtrack s = todo
+backtrack s = nextCol (head $ tail s) : drop 2 s
 
 --------------------------------------------------------------------------------
 -- Ex 8: Let's take a step. Our algorithm solves the problem (in a
@@ -357,9 +398,19 @@ backtrack s = todo
 --     step 8 [(4,2),(3,5),(2,3),(1,1)] ==> [(5,1),(4,2),(3,5),(2,3),(1,1)]
 --     step 8 [(5,1),(4,2),(3,5),(2,3),(1,1)] ==> [(6,1),(5,4),(4,2),(3,5),(2,3),(1,1)]
 --     step 8 [(6,1),(5,4),(4,2),(3,5),(2,3),(1,1)] ==> [(5,5),(4,2),(3,5),(2,3),(1,1)]
-
+--
+--     I'm rather displeased with this implementation but it seems to work.
 step :: Size -> Stack -> Stack
-step = todo
+step size (c:cs)
+  | fst c > size || snd c > size = back
+  | not $ danger c cs = con
+  | danger c cs && result == Nothing = back
+  | result == Nothing = continue (back)
+  | otherwise = continue (fromJust result)
+  where
+    result = fixFirst size (c : cs)
+    back = backtrack (c : cs)
+    con = continue (c : cs)
 
 --------------------------------------------------------------------------------
 -- Ex 9: Let's solve our puzzle! The function finish takes a partial
@@ -372,9 +423,10 @@ step = todo
 --
 -- After this, it's just a matter of calling `finish n [(1,1)]` to
 -- solve the n queens problem.
-
 finish :: Size -> Stack -> Stack
-finish = todo
+finish size cs
+  | length (step size cs) > size = tail (step size cs)
+  | otherwise = finish size (step size cs)
 
 solve :: Size -> Stack
-solve n = finish n [(1,1)]
+solve n = finish n [(1, 1)]

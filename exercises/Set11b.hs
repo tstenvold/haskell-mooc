@@ -1,12 +1,11 @@
 module Set11b where
 
 import Control.Monad
-import Data.List
 import Data.IORef
+import Data.List
 import System.IO
 
 import Mooc.Todo
-
 
 ------------------------------------------------------------------------------
 -- Ex 1: Given an IORef String and a list of Strings, update the value
@@ -18,9 +17,10 @@ import Mooc.Todo
 --   *Set11b> appendAll r ["foo","bar","quux"]
 --   *Set11b> readIORef r
 --   "xfoobarquux"
-
 appendAll :: IORef String -> [String] -> IO ()
-appendAll = todo
+appendAll ref ls = modifyIORef ref conIORef
+  where
+    conIORef x = x ++ concat ls
 
 ------------------------------------------------------------------------------
 -- Ex 2: Given two IORefs, swap the values stored in them.
@@ -33,11 +33,14 @@ appendAll = todo
 --   "y"
 --   *Set11b> readIORef y
 --   "x"
-
 swapIORefs :: IORef a -> IORef a -> IO ()
-swapIORefs = todo
+swapIORefs a b = do
+  y <- readIORef a
+  z <- readIORef b
+  modifyIORef b (\x -> y)
+  modifyIORef a (\x -> z)
 
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 -- Ex 3: sometimes one bumps into IO operations that return IO
 -- operations. For instance the type IO (IO Int) means an IO operation
 -- that returns an IO operation that returns an Int.
@@ -59,9 +62,11 @@ swapIORefs = todo
 --
 --     do l <- readLn
 --        replicateM l getLine
-
 doubleCall :: IO (IO a) -> IO a
-doubleCall op = todo
+doubleCall op = do
+  s <- op
+  x <- s
+  return x
 
 ------------------------------------------------------------------------------
 -- Ex 4: implement the analogue of function composition (the (.)
@@ -78,9 +83,14 @@ doubleCall op = todo
 --   1. take the value of type c and pass it to op2
 --   2. take the resulting value (of type a) and pass it to op1
 --   3. return the result (of type b)
-
 compose :: (a -> IO b) -> (c -> IO a) -> c -> IO b
-compose op1 op2 c = todo
+compose op1 op2 c = do
+  aU <- at c
+  bU <- bt aU
+  return bU
+  where
+    at = op2
+    bt = op1
 
 ------------------------------------------------------------------------------
 -- Ex 5: Reading lines from a file. The module System.IO defines
@@ -108,9 +118,11 @@ compose op1 op2 c = todo
 --   *Set11b> ls <- hFetchLines h
 --   *Set11b> take 3 ls
 --   ["module Set11b where","","import Control.Monad"]
-
 hFetchLines :: Handle -> IO [String]
-hFetchLines = todo
+hFetchLines h = do
+  lss <- hGetContents h
+  let result = lines lss
+  return result
 
 ------------------------------------------------------------------------------
 -- Ex 6: Given a Handle and a list of line indexes, produce the lines
@@ -121,9 +133,12 @@ hFetchLines = todo
 -- Here too, there are multiple ways to implement this. You can try
 -- using hFetchLines, or writing out a loop that gets lines from the
 -- handle.
-
 hSelectLines :: Handle -> [Int] -> IO [String]
-hSelectLines h nums = todo
+hSelectLines h nums = do
+  ls <- hFetchLines h
+  let lines = filter (\(x, y) -> x `elem` nums) (zip [1 ..] ls)
+      result = snd $ unzip lines
+  return result
 
 ------------------------------------------------------------------------------
 -- Ex 7: In this exercise we see how a program can be split into a
@@ -156,12 +171,17 @@ hSelectLines h nums = todo
 --   bye bye
 --   3
 --   *Set11b>
-
 -- This is used in the example above. Don't change it!
-counter :: (String,Integer) -> (Bool,String,Integer)
-counter ("inc",n)   = (True,"done",n+1)
-counter ("print",n) = (True,show n,n)
-counter ("quit",n)  = (False,"bye bye",n)
+counter :: (String, Integer) -> (Bool, String, Integer)
+counter ("inc", n) = (True, "done", n + 1)
+counter ("print", n) = (True, show n, n)
+counter ("quit", n) = (False, "bye bye", n)
 
-interact' :: ((String,st) -> (Bool,String,st)) -> st -> IO st
-interact' f state = todo
+interact' :: ((String, st) -> (Bool, String, st)) -> st -> IO st
+interact' f state = do
+  s <- getLine
+  let (b, str, newState) = f (s, state)
+  putStrLn str
+  if b == False
+    then return newState
+    else interact' f newState

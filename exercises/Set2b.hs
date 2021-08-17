@@ -14,9 +14,13 @@ import Data.List
 --   B(0,k) = 0, when k>0
 --
 -- Hint! pattern matching is your friend.
-
 binomial :: Integer -> Integer -> Integer
-binomial = todo
+binomial 0 k =
+  if k > 0
+    then 0
+    else 1
+binomial n 0 = 1
+binomial n k = binomial (n - 1) k + binomial (n - 1) (k - 1)
 
 ------------------------------------------------------------------------------
 -- Ex 2: implement the odd factorial function. Odd factorial is like
@@ -25,9 +29,8 @@ binomial = todo
 -- Examples:
 --   oddFactorial 7 ==> 7*5*3*1 ==> 105
 --   oddFactorial 6 ==> 5*3*1 ==> 15
-
 oddFactorial :: Integer -> Integer
-oddFactorial = todo
+oddFactorial n = product [x | x <- [n,n - 1 .. 1], odd x]
 
 ------------------------------------------------------------------------------
 -- Ex 3: implement the Euclidean Algorithm for finding the greatest
@@ -57,9 +60,12 @@ oddFactorial = todo
 --
 -- Background reading:
 -- * https://en.wikipedia.org/wiki/Euclidean_algorithm
-
 myGcd :: Integer -> Integer -> Integer
-myGcd = todo
+myGcd 0 d = d
+myGcd n 0 = n
+myGcd n d
+  | n > d = myGcd (n - d) d
+  | otherwise = myGcd n (d - n)
 
 ------------------------------------------------------------------------------
 -- Ex 4: Implement the function leftpad which adds space characters
@@ -73,9 +79,13 @@ myGcd = todo
 -- Tips:
 -- * you can combine strings with the ++ operator.
 -- * you can compute the length of a string with the length function
-
 leftpad :: String -> Int -> String
-leftpad = todo
+leftpad s i =
+  if l < i
+    then take (i - l) (repeat ' ') ++ s
+    else s
+  where
+    l = length s
 
 ------------------------------------------------------------------------------
 -- Ex 5: let's make a countdown for a rocket! Given a number, you
@@ -89,9 +99,14 @@ leftpad = todo
 -- * you can combine strings with the ++ operator
 -- * you can use the show function to convert a number into a string
 -- * you'll probably need a recursive helper function
-
 countdown :: Integer -> String
-countdown = todo
+countdown n = "Ready! " ++ concat nums ++ "Liftoff!"
+  where
+    ns = [n,n - 1 .. 1]
+    nums = map count ns
+
+count :: Integer -> String
+count n = show n ++ "... "
 
 ------------------------------------------------------------------------------
 -- Ex 6: implement the function smallestDivisor that returns the
@@ -107,18 +122,18 @@ countdown = todo
 -- remember this in the next exercise!
 --
 -- Hint: remember the mod function!
-
 smallestDivisor :: Integer -> Integer
-smallestDivisor = todo
+smallestDivisor n = head [x | x <- [2 ..], n `mod` x == 0]
 
 ------------------------------------------------------------------------------
 -- Ex 7: implement a function isPrime that checks if the given number
 -- is a prime number. Use the function smallestDivisor.
 --
 -- Ps. 0 and 1 are not prime numbers
-
 isPrime :: Integer -> Bool
-isPrime = todo
+isPrime 0 = False
+isPrime 1 = False
+isPrime n = null [x | x <- [2 .. n - 1], n `mod` x == 0]
 
 ------------------------------------------------------------------------------
 -- Ex 8: implement a function biggestPrimeAtMost that returns the
@@ -131,6 +146,13 @@ isPrime = todo
 -- Examples:
 --   biggestPrimeAtMost 3 ==> 3
 --   biggestPrimeAtMost 10 ==> 7
-
 biggestPrimeAtMost :: Integer -> Integer
-biggestPrimeAtMost = todo
+biggestPrimeAtMost n = last x
+  where
+    ns = take (fromIntegral n) primeLst
+    x = [a | a <- ns, a <= n]
+
+primeLst :: [Integer]
+primeLst = sieve [2 ..]
+  where
+    sieve (p:xs) = p : sieve [x | x <- xs, x `mod` p > 0]
