@@ -17,7 +17,7 @@ import Mooc.Todo
 --   countNothings []  ==>  0
 --   countNothings [Just 1, Nothing, Just 3, Nothing]  ==>  2
 countNothings :: [Maybe a] -> Int
-countNothings xs = foldr countHelper 0 xs
+countNothings = foldr countHelper 0
 
 countHelper :: Maybe a -> Int -> Int
 countHelper Nothing n = n + 1
@@ -51,7 +51,7 @@ maxHelper x xs =
 --   sumAndLength []             ==>  (0.0,0)
 --   sumAndLength [1.0,2.0,4.0]  ==>  (7.0,3)
 sumAndLength :: [Double] -> (Double, Int)
-sumAndLength xs = foldr slHelper slStart xs
+sumAndLength = foldr slHelper slStart
 
 slStart :: (Double, Int)
 slStart = (0.0, 0)
@@ -68,7 +68,7 @@ slHelper x y = (x + fst y, snd y + 1)
 --   myConcat [[]]                ==> []
 --   myConcat [[1,2,3],[4,5],[6]] ==> [1,2,3,4,5,6]
 myConcat :: [[a]] -> [a]
-myConcat xs = foldr concatHelper concatStart xs
+myConcat = foldr concatHelper concatStart
 
 concatStart :: [a]
 concatStart = []
@@ -85,13 +85,13 @@ concatHelper x y = x ++ y
 --   largest [1,3,2] ==> [3]
 --   largest [1,3,2,3] ==> [3,3]
 largest :: [Int] -> [Int]
-largest xs = foldr largestHelper [] xs
+largest = foldr largestHelper []
 
 largestHelper x [] = [x]
 largestHelper x (n:ns)
   | x > n = [x]
   | x == n = x : n : ns
-  | otherwise = (n : ns)
+  | otherwise = n : ns
 
 ------------------------------------------------------------------------------
 -- Ex 6: get the first element of a list with a fold. Define
@@ -103,7 +103,7 @@ largestHelper x (n:ns)
 --   myHead []  ==>  Nothing
 --   myHead [1,2,3]  ==>  Just 1
 myHead :: [a] -> Maybe a
-myHead xs = foldr headHelper Nothing xs
+myHead = foldr headHelper Nothing
 
 headHelper :: a -> Maybe a -> Maybe a
 headHelper x _ = Just x
@@ -118,7 +118,7 @@ headHelper x _ = Just x
 --   myLast [] ==> Nothing
 --   myLast [1,2,3] ==> Just 3
 myLast :: [a] -> Maybe a
-myLast xs = foldr lastHelper Nothing xs
+myLast = foldr lastHelper Nothing
 
 lastHelper :: a -> Maybe a -> Maybe a
 lastHelper x Nothing = Just x

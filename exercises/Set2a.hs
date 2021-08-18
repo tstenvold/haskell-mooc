@@ -48,7 +48,7 @@ takeFinal n xs
 updateAt :: Int -> a -> [a] -> [a]
 updateAt i x xs
   | null xs = []
-  | i == 0 = [x] ++ tail xs
+  | i == 0 = x : tail xs
   | otherwise = head xs : updateAt (i - 1) x (tail xs)
 
 ------------------------------------------------------------------------------
@@ -139,7 +139,7 @@ safeIndex xs i
   | i < 0 || i > l = Nothing
   | otherwise = Just (xs !! i)
   where
-    l = (length xs) - 1
+    l = length xs - 1
 
 ------------------------------------------------------------------------------
 -- Ex 10: another variant of safe division. This time you should use

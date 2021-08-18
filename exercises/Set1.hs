@@ -36,7 +36,7 @@ double x = x * 2
 -- from the previous exercise to return its argument multiplied by
 -- four.
 quadruple :: Integer -> Integer
-quadruple x = (double x) + (double x)
+quadruple x = double x + double x
 
 ------------------------------------------------------------------------------
 -- Ex 4: define the function distance. It should take four arguments of
@@ -90,7 +90,7 @@ postagePrice :: Int -> Int
 postagePrice grams
   | grams <= 500 = 250
   | grams > 500 && grams <= 5000 = 300 + grams
-  | grams > 5000 = 6000
+  | otherwise = 6000
 
 ------------------------------------------------------------------------------
 -- Ex 8: define a function isZero that returns True if it is given an
@@ -100,12 +100,9 @@ postagePrice grams
 --
 -- Ps. remember, the type of booleans in haskell is Bool
 isZero :: Integer -> Bool
-isZero n =
-  if n == 0
-    then True
-    else False
+isZero n = n == 0 
 
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 -- Ex 9: implement using recursion a function sumTo such that
 --   sumTo n
 -- computes the sum 1+2+...+n

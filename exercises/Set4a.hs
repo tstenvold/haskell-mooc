@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 -- Exercise set 4a:
 --
 -- * using type classes
@@ -35,8 +36,8 @@ import Mooc.Todo
 allEqual :: Eq a => [a] -> Bool
 allEqual [] = True
 allEqual (x:xs)
-  | xs == [] = True
-  | otherwise = x == (head xs) && allEqual xs
+  | null xs = True
+  | otherwise = x == head xs && allEqual xs
 
 ------------------------------------------------------------------------------
 -- Ex 2: implement the function distinct which returns True if all
@@ -52,7 +53,7 @@ allEqual (x:xs)
 distinct :: Eq a => [a] -> Bool
 distinct [] = True
 distinct (x:xs)
-  | xs == [] = True
+  | null xs = True
   | otherwise = x `notElem` xs && distinct xs
 
 ------------------------------------------------------------------------------
@@ -66,7 +67,7 @@ distinct (x:xs)
 --   middle 'b' 'a' 'c'  ==> 'b'
 --   middle 1 7 3        ==> 3
 middle :: Ord a => a -> a -> a -> a
-middle x y z = (sort [x, y, z]) !! 1
+middle x y z = sort [x, y, z] !! 1
 
 ------------------------------------------------------------------------------
 -- Ex 4: return the range of an input list, that is, the difference
@@ -86,8 +87,8 @@ rangeOf ::
        [a] -> a
 rangeOf ls = max - min
   where
-    min = head (sort ls)
-    max = last (sort ls)
+    min = minimum ls
+    max = maximum ls
 
 ------------------------------------------------------------------------------
 -- Ex 5: given a (non-empty) list of (non-empty) lists, return the longest
@@ -104,21 +105,18 @@ rangeOf ls = max - min
 -- Examples:
 --   longest [[1,2,3],[4,5],[6]] ==> [1,2,3]
 --   longest ["bcd","def","ab"] ==> "bcd"
+longest [] = []
 longest (ls:lss) = longer ls lss
 
 longer x [] = x
-longer x (ls:lss) =
-  if ll > lx
-    then longer ls lss
-    else if ll == lx
-           then if (head ls) > (head x)
-                  then longer x lss
-                  else longer ls lss
-           else longer x lss
+longer x (ls : lss)
+  | ll > lx = longer ls lss
+  | ll == lx
+  = if head ls > head x then longer x lss else longer ls lss
+  | otherwise = longer x lss
   where
-    ll = length ls
-    lx = length x
-
+      ll = length ls
+      lx = length x
 ------------------------------------------------------------------------------
 -- Ex 6: Implement the function incrementKey, that takes a list of
 -- (key,value) pairs, and adds 1 to all the values that have the given key.
@@ -133,13 +131,8 @@ longer x (ls:lss) =
 --   incrementKey True [(True,1),(False,3),(True,4)] ==> [(True,2),(False,3),(True,5)]
 --   incrementKey 'a' [('a',3.4)] ==> [('a',4.4)]
 incrementKey :: (Num v, Eq k) => k -> [(k, v)] -> [(k, v)]
-incrementKey key ls =
-  map
-    (\x ->
-       if fst x == key
-         then (fst x, (snd x) + 1)
-         else x)
-    ls
+incrementKey key
+  = map (\ x -> if fst x == key then (fst x, snd x + 1) else x)
 
 ------------------------------------------------------------------------------
 -- Ex 7: compute the average of a list of values of the Fractional
@@ -202,7 +195,7 @@ freqs xs = Map.fromList zipped
 
 occur :: Ord a => [a] -> [Int]
 occur [] = []
-occur (x:xs) = (sum $ map (\a -> 1) $ filter (== x) xs) : occur xs
+occur (x:xs) = sum (map (const 1) $ filter (== x) xs) : occur xs
 
 ------------------------------------------------------------------------------
 -- Ex 10: recall the withdraw example from the course material. Write a
@@ -263,7 +256,7 @@ maxIndex :: (Ix i, Ord a) => Array i a -> i
 maxIndex arr = trav arr indexs item
   where
     indexs = indices arr
-    item = last $ sort $ elems arr
+    item = maximum $ elems arr
 
 trav :: (Ix i, Ord a) => Array i a -> [i] -> a -> i
 trav arr (i:is) item

@@ -82,7 +82,7 @@ myGcd n d
 leftpad :: String -> Int -> String
 leftpad s i =
   if l < i
-    then take (i - l) (repeat ' ') ++ s
+    then replicate (i - l) ' ' ++ s
     else s
   where
     l = length s
@@ -155,4 +155,5 @@ biggestPrimeAtMost n = last x
 primeLst :: [Integer]
 primeLst = sieve [2 ..]
   where
+    sieve [] = []
     sieve (p:xs) = p : sieve [x | x <- xs, x `mod` p > 0]

@@ -71,7 +71,7 @@ sumList (x:xs) = x + sumList xs
 --   mylast 0 [1,2,3] ==> 3
 mylast :: a -> [a] -> a
 mylast def [] = def
-mylast def (x:[]) = x
+mylast def [x] = x
 mylast def (x:xs) = mylast def xs
 
 ------------------------------------------------------------------------------
@@ -101,9 +101,9 @@ indexDefault (x:xs) i def
 -- Use pattern matching and recursion to iterate through the list.
 sorted :: [Int] -> Bool
 sorted [] = True
-sorted (x:[]) = True
+sorted [x] = True
 sorted (x:y:xs)
-  | x <= y = True && sorted (y : xs)
+  | x <= y = sorted (y : xs)
   | otherwise = False
 
 ------------------------------------------------------------------------------
@@ -155,7 +155,7 @@ merge (x:xs) (y:ys)
 --     ==> [1,2]
 mymaximum :: (a -> a -> Bool) -> a -> [a] -> a
 mymaximum f i [] = i
-mymaximum f i (x:[]) =
+mymaximum f i [x]) =
   if i `f` x
     then i
     else x

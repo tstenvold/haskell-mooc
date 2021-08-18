@@ -83,7 +83,7 @@ firstHalf xs =
     then take l xs
     else take (l + 1) xs
   where
-    l = (length xs `div` 2)
+    l = length xs `div` 2
 
 palindrome :: String -> Bool
 palindrome str = reverse str == str
@@ -108,6 +108,7 @@ capitalize str = unwords $ map capitalizeFirst ws
     ws = words str
 
 capitalizeFirst :: String -> String
+capitalizeFirst [] = []
 capitalizeFirst (x:xs) = toUpper x : xs
 
 ------------------------------------------------------------------------------
@@ -124,7 +125,7 @@ capitalizeFirst (x:xs) = toUpper x : xs
 --   * k^max > max
 --   * the function takeWhile
 powers :: Integer -> Integer -> [Integer]
-powers k max = takeWhile (\x -> x <= max) [k ^ y | y <- [0 .. max]]
+powers k max = takeWhile (<= max) [k ^ y | y <- [0 .. max]]
 
 ------------------------------------------------------------------------------
 -- Ex 7: implement a functional while loop. While should be a function
@@ -206,7 +207,7 @@ joinToLength l xs = filter (\x -> length x == l) [y ++ z | y <- xs, z <- xs]
 (+|+) :: [a] -> [a] -> [a]
 [] +|+ y = [head y]
 x +|+ [] = [head x]
-x +|+ y = [head x] ++ [head y]
+x +|+ y = head x : [head y]
 
 ------------------------------------------------------------------------------
 -- Ex 11: remember the lectureParticipants example from Lecture 2? We
@@ -293,7 +294,7 @@ multiApp f gs x = f $ map ($ x) gs
 interpreter :: [String] -> [String]
 interpreter commands = move commands 0 0 []
   where
-    move [] x y lst = lst
+    move [] _ _ lst = lst
     move ("up":cs) x y lst = move cs x (y + 1) lst
     move ("down":cs) x y lst = move cs x (y - 1) lst
     move ("left":cs) x y lst = move cs (x - 1) y lst
