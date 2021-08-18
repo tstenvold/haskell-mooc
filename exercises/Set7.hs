@@ -13,15 +13,15 @@ import Mooc.Todo
 -- meters per second.
 --
 -- Implement the functions below.
-data Distance =
+newtype Distance =
   Distance Double
   deriving (Show, Eq)
 
-data Time =
+newtype Time =
   Time Double
   deriving (Show, Eq)
 
-data Velocity =
+newtype Velocity =
   Velocity Double
   deriving (Show, Eq)
 
@@ -45,7 +45,7 @@ travel (Velocity v) (Time t) = Distance (v * t)
 --   member 'a' (Set ['a','b','c'])  ==>  True
 --   add 2 (add 3 (add 1 emptySet))  ==>  Set [1,2,3]
 --   add 1 (add 1 emptySet)  ==>  Set [1]
-data Set a =
+newtype Set a =
   Set [a]
   deriving (Show, Eq)
 
@@ -126,7 +126,7 @@ step _ _ = Error
 
 -- do not edit this
 bake :: [Event] -> State
-bake events = go Start events
+bake = go Start
   where
     go state [] = state
     go state (e:es) = go (step state e) es
@@ -146,8 +146,8 @@ average (a :| as) = sum (a : as) / fromIntegral (length as + 1)
 ------------------------------------------------------------------------------
 -- Ex 5: reverse a NonEmpty list.
 reverseNonEmpty :: NonEmpty a -> NonEmpty a
-reverseNonEmpty (a :| []) = (a :| [])
-reverseNonEmpty (a :| as) = (head xs :| tail xs)
+reverseNonEmpty (a :| []) = a :| []
+reverseNonEmpty (a :| as) = head xs :| tail xs
   where
     xs = reverse (a : as)
 
@@ -272,7 +272,7 @@ data PasswordRequirement
 
 passwordAllowed :: String -> PasswordRequirement -> Bool
 passwordAllowed pass (MinimumLength n) = length pass >= n
-passwordAllowed pass (ContainsSome ls) = (pass \\ ls) /= pass
+passwordAllowed pass (ContainsSome ls) = pass \\ ls /= pass
 passwordAllowed pass (DoesNotContain ls) =
   not $ passwordAllowed pass (ContainsSome ls)
 passwordAllowed pass (And a b) =
@@ -307,7 +307,7 @@ literal :: Integer -> Arithmetic
 literal = Literal
 
 operation :: String -> Arithmetic -> Arithmetic -> Arithmetic
-operation op a1 a2 = Operation op a1 a2
+operation = Operation
 
 evaluate :: Arithmetic -> Integer
 evaluate (Literal n) = n

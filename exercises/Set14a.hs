@@ -45,17 +45,12 @@ greetText txt = T.pack ("Hello, " ++ str ++ dot)
 --   shout (T.pack "word")
 --     ==> "WORD"
 shout :: T.Text -> T.Text
-shout txt = T.pack (r)
+shout txt = T.pack r
   where
     str = words $ T.unpack txt
     res =
-      map
-        (\(s, n) ->
-           if mod n 2 == 0
-             then (map toUpper s, n)
-             else (s, n))
-        (zip str [2 ..])
-    r = unwords $ fst $ unzip res
+      zipWith (\ s n -> (if even n then (map toUpper s, n) else (s, n))) str [2 ..]
+    r = unwords $ map fst res
 
 ------------------------------------------------------------------------------
 -- Ex 3: Find the longest sequence of a single character repeating in
@@ -69,7 +64,7 @@ longestRepeat txt = m
   where
     str = map length (group $ T.unpack txt)
     m =
-      if str == []
+      if null str
         then 0
         else maximum str
 
@@ -125,7 +120,7 @@ zeroOr f bs =
 xorChecksum :: B.ByteString -> Word8
 xorChecksum txt = acc
   where
-    (acc, _) = B.mapAccumL (\a x -> ((xor a x), x)) 0 txt
+    (acc, _) = B.mapAccumL (\a x -> (xor a x, x)) 0 txt
 
 ------------------------------------------------------------------------------
 -- Ex 7: Given a ByteString, compute how many UTF-8 characters it

@@ -54,7 +54,7 @@ data Coord =
 
 -- A Picture is a wrapper for a function of type Coord -> Color.
 -- The function takes in x and y coordinates and returns a color.
-data Picture =
+newtype Picture =
   Picture (Coord -> Color)
 
 -- Here's a picture that's just a white dot at 10,10
@@ -65,7 +65,7 @@ justADot = Picture f
 
 -- Here's a picture that's just a solid color
 solid :: Color -> Picture
-solid color = Picture (\coord -> color)
+solid color = Picture (const color)
 
 -- Here's a simple picture:
 examplePicture1 = Picture f
@@ -195,7 +195,7 @@ blend = combine blendColor
 -- notion of a Shape. A Shape is just a function that takes in
 -- coordinates and returns a boolean indicating whether the
 -- coordinates belong to the shape.
-data Shape =
+newtype Shape =
   Shape (Coord -> Bool)
 
 -- Here's a utility for testing
@@ -207,7 +207,7 @@ contains (Shape f) x y = f (Coord x y)
 dot :: Int -> Int -> Shape
 dot x y = Shape f
   where
-    f (Coord cx cy) = (x == cx) && (y == cy)
+    f (Coord cx cy) = x == cx && y == cy
 
 -- Here's the definitions of a circle
 circle :: Int -> Int -> Int -> Shape
@@ -245,7 +245,7 @@ exampleCircle = fill red (circle 80 100 200)
 rectangle :: Int -> Int -> Int -> Int -> Shape
 rectangle x0 y0 w h = Shape f
   where
-    f (Coord x y) = x >= x0 && x < (x0 + w) && y >= y0 && y < (y0 + h)
+    f (Coord x y) = x >= x0 && x < x0 + w && y >= y0 && y < y0 + h
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
@@ -263,7 +263,7 @@ union :: Shape -> Shape -> Shape
 union (Shape s1) (Shape s2) = Shape (\x -> s1 x || s2 x)
 
 cut :: Shape -> Shape -> Shape
-cut (Shape s1) (Shape s2) = Shape (\x -> s1 x && (not $ s2 x))
+cut (Shape s1) (Shape s2) = Shape (\x -> s1 x && not (s2 x))
 
 ------------------------------------------------------------------------------
 -- Here's a snowman, built using union from circles and rectangles.
@@ -272,10 +272,10 @@ cut (Shape s1) (Shape s2) = Shape (\x -> s1 x && (not $ s2 x))
 exampleSnowman :: Picture
 exampleSnowman = fill white snowman
   where
-    snowman = union (cut body mouth) hat
+    snowman = cut body mouth `union` hat
     mouth = rectangle 180 180 40 5
-    body = union (circle 50 200 250) (circle 40 200 170)
-    hat = union (rectangle 170 130 60 5) (rectangle 180 100 40 30)
+    body = circle 50 200 250 `union` circle 40 200 170
+    hat = rectangle 170 130 60 5 `union` rectangle 180 100 40 30
 
 ------------------------------------------------------------------------------
 -- Ex 5: even though we can combine Shapes and convert them to Pictures, we
@@ -290,7 +290,7 @@ exampleSnowman = fill white snowman
 --        ["000000","ff69b4","000000"],
 --        ["000000","000000","000000"]]
 paintSolid :: Color -> Shape -> Picture -> Picture
-paintSolid color shape base = combine overlay (fill color shape) base
+paintSolid color shape = combine overlay (fill color shape)
 
 ------------------------------------------------------------------------------
 allWhite :: Picture
@@ -304,7 +304,7 @@ exampleColorful =
   where
     legs = circle 50 200 250
     body = circle 40 200 170
-    hat = union (rectangle 170 130 60 5) (rectangle 180 100 40 30)
+    hat = rectangle 170 130 60 5 `union` rectangle 180 100 40 30
 
 -- How about painting with a pattern instead of a solid color? Here
 -- are the definitions of two patterns (Pictures).
@@ -354,12 +354,12 @@ examplePatterns =
   where
     legs = circle 50 200 250
     body = circle 40 200 170
-    hat = union (rectangle 170 130 60 5) (rectangle 180 100 40 30)
+    hat = rectangle 170 130 60 5 `union` rectangle 180 100 40 30
 
 -- What if we want vertical stripes? What if we want wider stripes?
 -- Let's implement zooming and flipping images.
 flipCoordXY :: Coord -> Coord
-flipCoordXY (Coord x y) = (Coord y x)
+flipCoordXY (Coord x y) = Coord y x
 
 -- Flip a picture by switching x and y coordinates
 flipXY :: Picture -> Picture
@@ -402,13 +402,13 @@ xy = Picture f
 --
 -- The FlipXY transform should switch the x and y coordinates, i.e.
 -- map (10,15) to (15,10).
-data Fill =
+newtype Fill =
   Fill Color
 
 instance Transform Fill where
   apply (Fill col) _ = solid col
 
-data Zoom =
+newtype Zoom =
   Zoom Int
   deriving (Show)
 
@@ -504,7 +504,7 @@ instance Transform Blur where
 --        ["0a0a0a","141414","333333","141414","0a0a0a"],
 --        ["000000","141414","141414","141414","000000"],
 --        ["000000","000000","0a0a0a","000000","000000"]]
-data BlurMany =
+newtype BlurMany =
   BlurMany Int
   deriving (Show)
 

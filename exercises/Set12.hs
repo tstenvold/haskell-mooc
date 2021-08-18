@@ -15,7 +15,7 @@ import Mooc.Todo
 --   incrementAll [1,2,3]     ==>  [2,3,4]
 --   incrementAll (Just 3.0)  ==>  Just 4.0
 incrementAll :: (Functor f, Num n) => f n -> f n
-incrementAll x = fmap (+ 1) x
+incrementAll = fmap (+ 1)
 
 ------------------------------------------------------------------------------
 -- Ex 2: Sometimes one wants to fmap multiple levels deep. Implement
@@ -35,11 +35,11 @@ incrementAll x = fmap (+ 1) x
 --     fmap3 not (Just [Just False, Nothing])
 --       ==> Just [Just True,Nothing]
 fmap2 :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
-fmap2 f x = fmap (fmap f) x
+fmap2 f = fmap (fmap f)
 
 fmap3 ::
      (Functor f, Functor g, Functor h) => (a -> b) -> f (g (h a)) -> f (g (h b))
-fmap3 f x = fmap (fmap (fmap f)) x
+fmap3 f = fmap (fmap (fmap f))
 
 ------------------------------------------------------------------------------
 -- Ex 3: below you'll find a type Result that works a bit like Maybe,
@@ -101,7 +101,7 @@ instance Functor TwoList where
 --   count True [True,False,True] ==> 2
 --   count 'c' (Just 'c') ==> 1
 count :: (Eq a, Foldable f) => a -> f a -> Int
-count y f = length $ filter (\x -> x == y) ls
+count y f = length $ filter (== y) ls
   where
     ls = toList f
 
@@ -113,7 +113,7 @@ count y f = length $ filter (\x -> x == y) ls
 --   inBoth [1,2] (Just 2) ==> [2]
 --   inBoth Nothing [3]    ==> []
 inBoth :: (Foldable f, Foldable g, Eq a) => f a -> g a -> [a]
-inBoth f1 f2 = intersect (toList f1) (toList f2)
+inBoth f1 f2 = toList f1 `intersect` toList f2
 
 ------------------------------------------------------------------------------
 -- Ex 8: Implement the instance Foldable List.
@@ -144,14 +144,14 @@ instance Foldable TwoList where
 --
 -- Figuring out what the Functor instance should do is most of the
 -- puzzle.
-data Fun a =
+newtype Fun a =
   Fun (Int -> a)
 
 runFun :: Fun a -> Int -> a
-runFun (Fun f) x = f x
+runFun (Fun f) = f
 
 instance Functor Fun where
-  fmap f (Fun g) = Fun (\x -> f (g x))
+  fmap f (Fun g) = Fun (f . g)
 
 ------------------------------------------------------------------------------
 -- Ex 11: (Tricky!) You'll find the binary tree type from Set 5b

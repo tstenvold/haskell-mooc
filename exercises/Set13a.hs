@@ -42,7 +42,7 @@ split str
   | not b = Nothing
   | otherwise = Just (x, y)
   where
-    b = isInfixOf " " str
+    b = " " `isInfixOf` str
     (x:y:_) = words str
 
 -- checkNumber should take a pair of two strings and return them
@@ -119,8 +119,8 @@ winner scores player1 player2 = do
 --  selectSum [0..10] [4,6,9,20]
 --    Nothing
 selectSum :: Num a => [a] -> [Int] -> Maybe a
-selectSum xs is = do
-  fmap sum $ sequence (map (safeIndex xs) is)
+selectSum xs is =
+  sum <$> mapM (safeIndex xs) is
 
 safeIndex :: [a] -> Int -> Maybe a
 safeIndex xs x
@@ -150,7 +150,7 @@ instance Functor Logger where
   fmap f (Logger l a) = Logger l (f a)
 
 instance Monad Logger where
-  return x = Logger [] x
+  return = Logger []
   Logger la a >>= f = Logger (la ++ lb) b
     where
       Logger lb b = f a
@@ -177,11 +177,11 @@ countAndLog f ls = Logger (map show nls) (length nls)
 -- operation shouldn't change the state of the Bank. The functions
 -- from Data.Map are available under the prefix Map.
 exampleBank :: Bank
-exampleBank = (Bank (Map.fromList [("harry", 10), ("cedric", 7), ("ginny", 1)]))
+exampleBank = Bank (Map.fromList [("harry", 10), ("cedric", 7), ("ginny", 1)])
 
 balance :: String -> BankOp Int
 balance accountName =
-  BankOp (\(Bank x) -> ((Map.findWithDefault 0 accountName x), Bank x))
+  BankOp (\(Bank x) -> (Map.findWithDefault 0 accountName x, Bank x))
 
 ------------------------------------------------------------------------------
 -- Ex 6: Using the operations balance, withdrawOp and depositOp, and
@@ -241,7 +241,7 @@ paren ch =
     (\x ->
        if x == -1
          then -1
-         else x + (chChar ch))
+         else x + chChar ch)
   where
     chChar '(' = 1
     chChar ')' = -1
@@ -278,7 +278,7 @@ parensMatch s = count == 0
 count :: Eq a => a -> State [(a, Int)] ()
 count n = do
   val <- get
-  let ls = fst $ unzip val
+  let ls = map fst val
   if n `elem` ls
     then modify (plusOne n)
     else modify ((n, 1) :)
@@ -288,7 +288,7 @@ plusOne _ [] = []
 plusOne n (x:xs) =
   if n == fst x
     then (fst x, snd x + 1) : plusOne n xs
-    else (fst x, snd x) : plusOne n xs
+    else x : plusOne n xs
 
 ------------------------------------------------------------------------------
 -- Ex 10: Implement the operation occurrences, which
@@ -312,5 +312,5 @@ plusOne n (x:xs) =
 occurrences xs = do
     s <- mapM count xs
     val <- get
-    let ls = fst $ unzip val
+    let ls = map fst val
     return (length ls)

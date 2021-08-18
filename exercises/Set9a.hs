@@ -42,7 +42,7 @@ workload nExercises hoursPerExercise
 -- Hint: use recursion
 echo :: String -> String
 echo [] = []
-echo [x] = [x] ++ ", "
+echo [x] = x : ", "
 echo (x:xs) = (x : xs) ++ ", " ++ echo xs
 
 ------------------------------------------------------------------------------
@@ -55,8 +55,7 @@ echo (x:xs) = (x : xs) ++ ", " ++ echo xs
 -- Given a list of bank note serial numbers (strings), count how many
 -- are valid.
 countValid :: [String] -> Int
-countValid [] = 0
-countValid (x:xs) = validate x + countValid xs
+countValid = foldr ((+) . validate) 0
 
 validate n =
   if third == fifth || fourth == sixth
@@ -104,10 +103,10 @@ repeated (x:xs) =
 --     ==> Left "no data"
 sumSuccess :: [Either String Int] -> Either String Int
 sumSuccess xs
-  | n == [] = Left "no data"
+  | null n = Left "no data"
   | otherwise = Right (sum n)
   where
-    n = (rights xs)
+    n = rights xs
 
 ------------------------------------------------------------------------------
 -- Ex 6: A combination lock can either be open or closed. The lock
@@ -145,7 +144,7 @@ isOpen (Lock closed _) = closed
 -- wrong, nothing happens.
 open :: String -> Lock -> Lock
 open attempt (Lock closed code)
-  | closed == True = Lock True code
+  | closed = Lock True code
   | attempt == code = Lock True code
   | otherwise = Lock False code
 
@@ -156,7 +155,7 @@ lock (Lock closed code) =
     then Lock False code
     else l
   where
-    l = (Lock closed code)
+    l = Lock closed code
 
 -- changeCode changes the code of an open lock. If the lock is closed,
 -- nothing happens.
@@ -166,7 +165,7 @@ changeCode newCode (Lock closed code) =
     then Lock closed newCode
     else l
   where
-    l = (Lock closed code)
+    l = Lock closed code
 
 ------------------------------------------------------------------------------
 -- Ex 7: Here's a type Text that just wraps a String. Implement an Eq
@@ -180,7 +179,7 @@ changeCode newCode (Lock closed code) =
 --   Text "a bc" == Text "ab  c\n"  ==> True
 --   Text "abc"  == Text "abcd"     ==> False
 --   Text "a bc" == Text "ab  d\n"  ==> False
-data Text =
+newtype Text =
   Text String
   deriving (Show)
 
@@ -233,7 +232,7 @@ lookups ls (ft, key) = (ft, fromJust (lookup key ls))
 
 compares :: (Eq b, Eq c) => [(b, c)] -> (a, b) -> Bool
 compares xs (ft, sd)
-  | lookup sd xs == Nothing = False
+  | isNothing (lookup sd xs) = False
   | otherwise = True
 
 ------------------------------------------------------------------------------

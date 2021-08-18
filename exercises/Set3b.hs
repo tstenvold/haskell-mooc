@@ -155,7 +155,7 @@ merge (x:xs) (y:ys)
 --     ==> [1,2]
 mymaximum :: (a -> a -> Bool) -> a -> [a] -> a
 mymaximum f i [] = i
-mymaximum f i [x]) =
+mymaximum f i [x] =
   if i `f` x
     then i
     else x

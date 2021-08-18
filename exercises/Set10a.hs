@@ -15,7 +15,7 @@ import Mooc.Todo
 --   doublify [7,1,6]          ==>  [7,7,1,1,6,6]
 --   take 10 (doublify [0..])  ==>  [0,0,1,1,2,2,3,3,4,4]
 doublify :: [a] -> [a]
-doublify = concat . map (replicate 2)
+doublify = concatMap (replicate 2)
 
 ------------------------------------------------------------------------------
 -- Ex 2: Implement the function interleave that takes two lists and
@@ -78,7 +78,7 @@ genAvg ns c
   | take (c + 1) ns == take c ns = [avgNum]
   | otherwise = avgNum : genAvg ns (c + 1)
   where
-    avgNum = sum (take c ns) / (fromIntegral c)
+    avgNum = sum (take c ns) / fromIntegral c
 
 ------------------------------------------------------------------------------
 -- Ex 5: Given two lists, xs and ys, and an element z, generate an
@@ -126,7 +126,7 @@ chunks :: Int -> [a] -> [[a]]
 chunks _ [] = []
 chunks n ls
   | length nChunk < n = []
-  | otherwise = [nChunk] ++ chunks n nList
+  | otherwise = nChunk : chunks n nList
   where
     nChunk = take n ls
     nList = tail ls

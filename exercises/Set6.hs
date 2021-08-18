@@ -40,9 +40,7 @@ instance Ord Country where
 -- Examples:
 --   Name "Pekka" == Name "pekka"   ==> True
 --   Name "Pekka!" == Name "pekka"  ==> False
-data Name =
-  Name String
-  deriving (Show)
+newtype Name = Name String deriving Show
 
 instance Eq Name where
   (Name x) == (Name y) = map toLower x == map toLower y
@@ -87,9 +85,9 @@ data Egg
   | ChocolateEgg
   deriving (Show)
 
-data Milk =
-  Milk Int -- amount in litres
-  deriving (Show)
+newtype Milk =
+    Milk Int -- amount in litres
+    deriving (Show)
 
 instance Price Egg where
   price ChickenEgg = 20
@@ -202,8 +200,8 @@ instance Num RationalNumber where
     simplify $ RationalNumber (a * c) (b * d)
   abs (RationalNumber a b) = RationalNumber (abs a) (abs b)
   signum (RationalNumber a b) = RationalNumber (signum a) (signum b)
-  fromInteger x = RationalNumber (x) (1)
-  negate (RationalNumber a b) = RationalNumber (-a) (b)
+  fromInteger x = RationalNumber x 1
+  negate (RationalNumber a b) = RationalNumber (-a) b
 
 ------------------------------------------------------------------------------
 -- Ex 11: a class for adding things. Define a class Addable with a

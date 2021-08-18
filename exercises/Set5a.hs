@@ -54,7 +54,7 @@ twoBananas = MkShoppingEntry "Banana" 1.1 2
 --   totalPrice threeApples  ==> 1.5
 --   totalPrice twoBananas   ==> 2.2
 totalPrice :: ShoppingEntry -> Double
-totalPrice (MkShoppingEntry _ price count) = price * (fromIntegral count)
+totalPrice (MkShoppingEntry _ price count) = price * fromIntegral count
 
 -- buyOneMore should increment the count in an entry by one
 --
@@ -119,11 +119,11 @@ getY (Pos x y) = y
 
 -- up increases the y value of a position by one
 up :: Position -> Position
-up p = Pos (getX p) ((getY p) + 1)
+up p = Pos (getX p) (getY p + 1)
 
 -- right increases the x value of a position by one
 right :: Position -> Position
-right p = Pos ((getX p) + 1) (getY p)
+right p = Pos (getX p + 1) (getY p)
 
 ------------------------------------------------------------------------------
 -- Ex 6: Here's a datatype that represents a student. A student can
@@ -139,7 +139,7 @@ data Student
 -- on. A 7th year student gets changed to a graduated student. A
 -- graduated student stays graduated even if he studies.
 study :: Student -> Student
-study Freshman = (NthYear 1)
+study Freshman = NthYear 1
 study (NthYear n) =
   if n + 1 > 7
     then Graduated
@@ -277,7 +277,7 @@ fromList :: [(k, v)] -> KeyVals k v
 fromList = putNext
   where
     putNext [] = Empty
-    putNext (x:xs) = Pair (fst x) (snd x) (putNext xs)
+    putNext (x:xs) = uncurry Pair x (putNext xs)
 
 ------------------------------------------------------------------------------
 -- Ex 11: The data type Nat is the so called Peano

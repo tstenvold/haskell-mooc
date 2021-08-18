@@ -101,7 +101,7 @@ nextCol (i, j) = (i, j + 1)
 -- takes O(n^3) time. Just ignore the previous sentence, if you're not familiar
 -- with the O-notation.)
 prettyPrint :: Size -> [Coord] -> String
-prettyPrint size cs = buildLines 1 size cs
+prettyPrint = buildLines 1
 
 buildLines :: Int -> Int -> [Coord] -> String
 buildLines row size cs
@@ -111,7 +111,7 @@ buildLines row size cs
 drawLine :: Size -> Coord -> [Coord] -> String
 drawLine size pos cs
   | size <= 0 = "\n"
-  | elem pos cs = "Q" ++ drawLine (size - 1) (nextCol pos) cs
+  | pos `elem` cs = "Q" ++ drawLine (size - 1) (nextCol pos) cs
   | otherwise = "." ++ drawLine (size - 1) (nextCol pos) cs
    --------------------------------------------------------------------------------
 
@@ -250,7 +250,7 @@ danger can (c:cs)
 -- (For those that did the challenge in exercise 2, there's probably no O(n^2)
 -- solution to this version. Any working solution is okay in this exercise.)
 prettyPrint2 :: Size -> Stack -> String
-prettyPrint2 size cs = buildLines2 1 size cs
+prettyPrint2 = buildLines2 1
 
 buildLines2 :: Int -> Int -> Stack -> String
 buildLines2 row size cs
@@ -260,7 +260,7 @@ buildLines2 row size cs
 drawLine2 :: Size -> Coord -> Stack -> String
 drawLine2 size pos cs
   | size <= 0 = "\n"
-  | elem pos cs = "Q" ++ next
+  | pos `elem` cs = "Q" ++ next
   | danger pos cs = "#" ++ next
   | otherwise = "." ++ next
   where
@@ -304,9 +304,10 @@ drawLine2 size pos cs
 --     ####Q###
 --     Q#######
 fixFirst :: Size -> Stack -> Maybe Stack
+fixFirst _ [] = Nothing
 fixFirst size (c:cs)
   | snd c > size = Nothing
-  | danger c cs = fixFirst size ((nextCol c) : cs)
+  | danger c cs = fixFirst size (nextCol c : cs)
   | otherwise = Just (c : cs)
 
 --------------------------------------------------------------------------------
@@ -401,11 +402,12 @@ backtrack s = nextCol (head $ tail s) : drop 2 s
 --
 --     I'm rather displeased with this implementation but it seems to work.
 step :: Size -> Stack -> Stack
+step _ [] = []
 step size (c:cs)
   | fst c > size || snd c > size = back
   | not $ danger c cs = con
-  | danger c cs && result == Nothing = back
-  | result == Nothing = continue (back)
+  | danger c cs && isNothing result = back
+  | isNothing result = continue back
   | otherwise = continue (fromJust result)
   where
     result = fixFirst size (c : cs)

@@ -29,7 +29,7 @@ hello = do
 -- Ex 2: define the IO operation greet that takes a name as an
 -- argument and prints a line "HELLO name".
 greet :: String -> IO ()
-greet name = do
+greet name =
   putStrLn ("HELLO " ++ name)
 
 ------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ greet name = do
 greet2 :: IO ()
 greet2 = do
   s <- getLine
-  greet $ s
+  greet s
 
 ------------------------------------------------------------------------------
 -- Ex 4: define the IO operation readWords n which reads n lines from
@@ -74,16 +74,14 @@ readWords n = do
 readUntil :: (String -> Bool) -> IO [String]
 readUntil f = do
   s <- getLine
-  case f s of
-    False -> do
-      p <- readUntil f
-      return ([s] ++ p)
-    True -> return ([])
+  if f s then return [] else (do
+    p <- readUntil f
+    return (s : p))
 
 ------------------------------------------------------------------------------
 -- Ex 6: given n, print the numbers from n to 0, one per line
 countdownPrint :: Int -> IO ()
-countdownPrint n = mapM_ (\x -> putStrLn (show x)) ls
+countdownPrint n = mapM_ print ls
   where
     ls = [n,(n - 1) .. 0]
 
@@ -105,9 +103,8 @@ sumState n s
   | n == 0 = return s
   | otherwise = do
     i <- readLn
-    putStrLn (show (i + s))
-    c <- sumState (n - 1) (i + s)
-    return c
+    print (i + s)
+    sumState (n - 1) (i + s)
 
 ------------------------------------------------------------------------------
 -- Ex 8: when is a useful function, but its first argument has type
@@ -116,9 +113,7 @@ sumState n s
 whenM :: IO Bool -> IO () -> IO ()
 whenM cond op = do
   b <- cond
-  case b of
-    True -> op
-    False -> putStr ""
+  if b then op else putStr ""
 
 ------------------------------------------------------------------------------
 -- Ex 9: implement the while loop. while condition operation should
@@ -140,11 +135,9 @@ ask = do
 while :: IO Bool -> IO () -> IO ()
 while cond op = do
   b <- cond
-  case b of
-    True -> do
-      s <- op
-      while cond op
-    False -> putStr ""
+  if b then (do
+    s <- op
+    while cond op) else putStr ""
 
 ------------------------------------------------------------------------------
 -- Ex 10: given a string and an IO operation, print the string, run

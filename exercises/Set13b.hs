@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 module Set13b where
 
 import Mooc.Todo
@@ -83,7 +84,7 @@ perhapsIncrement True x = modify (+ x)
 perhapsIncrement False _ = return ()
 
 --mapM2 :: Monad m => (a -> b -> m c) -> [a] -> [b] -> m [c]
-mapM2 op xs ys = mapM (\(x, y) -> (op x y)) ns
+mapM2 op xs ys = mapM (uncurry op) ns
   where
     ns = zip xs ys
 
@@ -150,9 +151,9 @@ visit maze place = do
           if x == place
             then y
             else []
-  if ls == [] || head ls /= place && not (elem place ls)
+  if null ls || head ls /= place && notElem place ls
     then do
-      put ([place] ++ ls)
+      put (place : ls)
       mapM_ (visit maze) ps
     else put val
 
@@ -160,7 +161,7 @@ visit maze place = do
 -- visit on a place using an empty state, you'll get a state that
 -- lists all the places that are reachable from the starting place.
 path :: [(String, [String])] -> String -> String -> Bool
-path maze place1 place2 = elem place2 ls
+path maze place1 place2 = place2 `elem` ls
   where
     (_, ls) = runState (visit maze place1) []
 
@@ -181,9 +182,7 @@ findSum2 ks ns = do
   a <- ks
   b <- ks
   c <- ns
-  if (a + b == c)
-    then [(a, b, c)]
-    else []
+  [(a, b, c) | a + b == c]
 
 ------------------------------------------------------------------------------
 -- Ex 5: compute all possible sums of elements from the given
@@ -203,7 +202,7 @@ findSum2 ks ns = do
 --   allSums [1,2,4]
 --     ==> [7,3,5,1,6,2,4,0]
 allSums :: [Int] -> [Int]
-allSums xs = map sum (filterM (\n -> [True, False]) xs)
+allSums xs = map sum (filterM (const [True, False]) xs)
 
 ------------------------------------------------------------------------------
 -- Ex 6: the standard library defines the function
@@ -229,7 +228,7 @@ allSums xs = map sum (filterM (\n -> [True, False]) xs)
 --  sumBounded 5 [1,2,3,1,-2]   -- 1+2+3=6 which results in Nothing
 --    ==> Nothing
 sumBounded :: Int -> [Int] -> Maybe Int
-sumBounded k xs = foldM (f1 k) 0 xs
+sumBounded k = foldM (f1 k) 0
 
 f1 :: Int -> Int -> Int -> Maybe Int
 f1 k acc x =
@@ -246,16 +245,16 @@ f1 k acc x =
 --  sumNotTwice [3,-2,3]         ==> 1
 --  sumNotTwice [1,2,-2,3]       ==> 4
 sumNotTwice :: [Int] -> Int
-sumNotTwice xs = fst $ runState (foldM f2 0 xs) []
+sumNotTwice xs = evalState (foldM f2 0 xs) []
 
 f2 :: Int -> Int -> State [Int] Int
 f2 acc x = do
   val <- get
   let ls = val
-  if elem x ls
+  if x `elem` ls
     then do
       put ls
-      return (acc)
+      return acc
     else do
       modify (++ [x])
       return (acc + x)
@@ -297,7 +296,7 @@ instance Applicative Result where
 
 -- implement return and >>=
 instance Monad Result where
-  return a = MkResult a
+  return = MkResult
   (MkResult a) >>= f = f a
   (Failure msg) >>= _ = Failure msg
   _ >>= _ = NoResult
@@ -323,12 +322,12 @@ instance Monad Result where
 --      ==> (2,2,["hello"])
 --   runSL (replicateM_ 5 (modifySL (+1) >> getSL >>= \x -> msgSL ("got "++show x))) 1
 --      ==> ((),6,["got 2","got 3","got 4","got 5","got 6"])
-data SL a =
+newtype SL a =
   SL (Int -> (a, Int, [String]))
 
 -- Run an SL operation with the given starting state
 runSL :: SL a -> Int -> (a, Int, [String])
-runSL (SL f) state = f state
+runSL (SL f) = f
 
 -- Write a log message
 msgSL :: String -> SL ()
@@ -340,7 +339,7 @@ getSL = SL (\s -> (s, s, []))
 
 -- Overwrite the state
 putSL :: Int -> SL ()
-putSL s' = SL (\s -> ((), s', []))
+putSL s' = SL (const ((), s', []))
 
 -- Modify the state
 modifySL :: (Int -> Int) -> SL ()

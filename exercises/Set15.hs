@@ -16,7 +16,7 @@ import Text.Read (readMaybe)
 --  sumTwoMaybes (Just 1) Nothing   ==> Nothing
 --  sumTwoMaybes Nothing Nothing    ==> Nothing
 sumTwoMaybes :: Maybe Int -> Maybe Int -> Maybe Int
-sumTwoMaybes x y = liftA2 (+) x y
+sumTwoMaybes = liftA2 (+)
 
 ------------------------------------------------------------------------------
 -- Ex 2: Given two lists of words, xs and ys, generate all statements
@@ -35,8 +35,8 @@ sumTwoMaybes x y = liftA2 (+) x y
 --         "code is not suffering","code is not life"]
 statements :: [String] -> [String] -> [String]
 statements x y =
-  (liftA2 (\a b -> a ++ " is " ++ b) x y) ++
-  (liftA2 (\a b -> a ++ " is not " ++ b) x y)
+  liftA2 (\a b -> a ++ " is " ++ b) x y ++
+  liftA2 (\a b -> a ++ " is not " ++ b) x y
 
 ------------------------------------------------------------------------------
 -- Ex 3: A simple calculator with error handling. Given an operation
@@ -102,10 +102,10 @@ data Address =
   deriving (Show, Eq)
 
 validateAddress :: String -> String -> String -> Validation Address
-validateAddress streetName streetNumber plz = liftA3 (Address) st nu pz
+validateAddress streetName streetNumber plz = liftA3 Address st nu pz
   where
-    st = check (length streetName <= 20) "Invalid street name" (streetName)
-    nu = check (all isDigit streetNumber) "Invalid street number" (streetNumber)
+    st = check (length streetName <= 20) "Invalid street name" streetName
+    nu = check (all isDigit streetNumber) "Invalid street number" streetNumber
     pz = check (length plz == 5 && all isDigit plz) "Invalid postcode" plz
 
 ------------------------------------------------------------------------------
@@ -183,11 +183,11 @@ boolOrInt str =
 --  normalizePhone "123 456 78 999"
 --    ==> Errors ["Too long"]
 normalizePhone :: String -> Validation String
-normalizePhone phone = liftA2 (pure) (tooLong) (traverse retErrors whitePhone)
+normalizePhone phone = liftA2 pure tooLong (traverse retErrors whitePhone)
   where
     tooLong = check (length whitePhone <= 10) "Too long" whitePhone
     retErrors x = check (isDigit x) ("Invalid character: " ++ [x]) x
-    whitePhone = filter (\x -> x /= ' ') phone
+    whitePhone = filter (/= ' ') phone
 
 ------------------------------------------------------------------------------
 -- Ex 9: Parsing expressions. The Expression type describes an
@@ -240,7 +240,7 @@ parseExpression exp = parseExpr (words exp)
       check (op == "+" || op == "-") ("Unknown operator: " ++ op) "" *>
       checkOp op (checkExp x) (checkExp y)
     parseExpr _ = invalid ("Invalid expression: " ++ exp)
-    checkExp x = checkNum (x) <|> checkVar (x)
+    checkExp x = checkNum x <|> checkVar x
     checkVar x =
       check
         (all isAlpha x && length x == 1)
@@ -277,7 +277,7 @@ instance Functor Priced where
   fmap f (Priced n a) = Priced n (f a)
 
 instance Applicative Priced where
-  pure x = Priced 0 x
+  pure = Priced 0
   liftA2 f (Priced n1 a1) (Priced n2 a2) = Priced (n1 + n2) (f a1 a2)
 
 ------------------------------------------------------------------------------
@@ -327,7 +327,7 @@ instance MyApplicative [] where
 --  myFmap negate Nothing  ==> Nothing
 --  myFmap negate [1,2,3]  ==> [-1,-2,-3]
 myFmap :: MyApplicative f => (a -> b) -> f a -> f b
-myFmap f a = (myPure f) <#> a
+myFmap f a = myPure f <#> a
 
 ------------------------------------------------------------------------------
 -- Ex 13: Given a function that returns an Alternative value, and a
@@ -354,7 +354,7 @@ myFmap f a = (myPure f) <#> a
 --       ==> Errors ["zero","zero","zero"]
 tryAll :: Alternative f => (a -> f b) -> [a] -> f b
 tryAll _ [] = empty
-tryAll f (l:[]) = f l
+tryAll f [l] = f l
 tryAll f (l:ls) = f l <|> tryAll f ls
 
 ------------------------------------------------------------------------------

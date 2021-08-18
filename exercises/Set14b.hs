@@ -90,7 +90,7 @@ openDatabase file = do
 -- given a db connection, an account name, and an amount, deposit
 -- should add an (account, amount) row into the database
 deposit :: Connection -> T.Text -> Int -> IO ()
-deposit db txt n = do
+deposit db txt n =
   execute db depositQuery (txt, n)
 
 ------------------------------------------------------------------------------
@@ -167,13 +167,13 @@ parseInt = readMaybe . T.unpack
 
 parseCommand :: [T.Text] -> Maybe Command
 parseCommand [] = Nothing
-parseCommand (x:[]) = Nothing
+parseCommand [x] = Nothing
 parseCommand (x:y:z)
   | length z > 1 = Nothing
-  | x == T.pack "balance" && z == [] = Just (Balance y)
-  | x == T.pack "deposit" && z /= [] && (parseInt $ head z) /= Nothing =
+  | x == T.pack "balance" && null z = Just (Balance y)
+  | x == T.pack "deposit" && z /= [] && isJust (parseInt (head z)) =
     Just (Deposit y (fromJust $ parseInt $ head z))
-  | x == T.pack "withdraw" && z /= [] && (parseInt $ head z) /= Nothing =
+  | x == T.pack "withdraw" && z /= [] && isJust (parseInt (head z)) =
     Just (Withdraw y (fromJust $ parseInt $ head z))
   | otherwise = Nothing
 
@@ -263,7 +263,7 @@ server db request respond =
     Just x -> do
       res <- perform db cmd
       respond (responseLBS status200 [] (encodeResponse res))
-    Nothing -> do
+    Nothing ->
       respond (responseLBS status200 [] (encodeResponse (T.pack "ERROR")))
   where
     path = pathInfo request
@@ -302,7 +302,7 @@ withdrawalQuery =
   Query (T.pack "INSERT INTO events (account, amount) VALUES (?, ?);")
 
 withdraw :: Connection -> T.Text -> Int -> IO ()
-withdraw db txt n = do
+withdraw db txt n =
   execute db withdrawalQuery (txt, -n)
 ------------------------------------------------------------------------------
 -- Ex 8: Error handling. Modify the parseCommand function so that it

@@ -55,18 +55,18 @@ data Last
 
 data Full
 
-data Name a =
+newtype Name a =
   Name String
 
 fromName (Name a) = a
 
 -- Build a Name First
 toFirst :: String -> Name First
-toFirst name = Name name
+toFirst = Name
 
 -- Build a Name Last
 toLast :: String -> Name Last
-toLast name = Name name
+toLast = Name
 
 ------------------------------------------------------------------------------
 -- Ex 4: Implement the functions capitalize and toFull.
@@ -86,7 +86,8 @@ toLast name = Name name
 --  capitalize (toLast "smith") :: Name Last
 --  fromName (capitalize (toLast "smith")) ==> "Smith"
 capitalize :: Name a -> Name a
-capitalize (Name (l:ls)) = Name ((toUpper l) : ls)
+capitalize (Name []) = Name []
+capitalize (Name (l:ls)) = Name (toUpper l : ls)
 
 toFull :: Name First -> Name Last -> Name Full
 toFull (Name frst) (Name lst) = Name (frst ++ " " ++ lst)
@@ -103,10 +104,10 @@ class Render currency where
   render :: Money currency -> String
 
 instance Render USD where
-  render (Money usd) = "$" ++ (show usd)
+  render (Money usd) = "$" ++ show usd
 
 instance Render EUR where
-  render (Money eur) = (show eur) ++ "e"
+  render (Money eur) = show eur ++ "e"
 
 instance Render CHF where
-  render (Money chf) = (show chf) ++ "chf"
+  render (Money chf) = show chf ++ "chf"
